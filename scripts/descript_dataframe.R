@@ -1,5 +1,6 @@
 library(tidyverse)
 library(dplyr)
+library(ggplot2)
 
 data <- read.csv("./data/best_swimmers.csv",sep = ",")
 view(data)
@@ -33,3 +34,5 @@ data_description <- function(data){
 }
 
 print(data_description(data))
+
+glimpse(data)

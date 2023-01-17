@@ -6,27 +6,51 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr:opts_chunks$set(echo = F)
+knitr::opts_chunk$set(echo = TRUE)
 options(scipen = 999)
 ```
+
 #Analisis exploratorio de los 200 mejores tiempos por carrera
 
-##Pre entrega Cueva Tomas
-En este Rmarkdown realizaremos el analisis de un dataset el cual contiene a los 200 mejores tiempos historicos de cada carrera, con nadadores dentro del ambito profesional.
-Del cual vamos a analizar:
+##Pre entrega Cueva Tomas En este Rmarkdown realizaremos el analisis de un dataset el cual contiene a los 200 mejores tiempos historicos de cada carrera, con nadadores dentro del ambito profesional. Del cual vamos a analizar:
 
-* La cantidad de nadadores por equipo/país
-* El/los nadadores mas jovenes y mas viejos del dataset
-* 
+-   La cantidad de nadadores por equipo/país
+-   El promedio de edad en donde los nadadores consiguen el mejor rendimiento
+-   Proximamente...
 
+Importamos librerias y funciones:
 
+```{r pressure, echo=FALSE,warning=FALSE,error=FALSE,message=FALSE,cache=TRUE}
+library(tidyverse)
+library(dplyr)
 
-## Including Plots
+data_description <- function(data){
+  na <- sum(is.na(data))
+  description <- "---"
+  if(na == 0){
+    description <- "El dataframe no tiene valores na"
+  }else{
+    decription <- "El dataframe SI TIENE valores na"
+  }
+  
+  description <-cat(description , " , contiene " , nrow(data), " filas y ",ncol(data), " columnas",", con las siguientes variables: ",names(data)) 
+  
+  
+  return(description)
+}
 
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+Leemos el dataset y analizamos sus caracteristicas
+
+```{r dataset_analysis, echo=TRUE}
+data <- read.csv("../data/best_swimmers.csv",sep = ",")
+
+print(data_description(data))
+```
+
+Hacemos algunas transformaciones de datos
+
+```{r transformation ,echo=FALSE}
+view(data)
+```
