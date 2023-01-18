@@ -18,27 +18,11 @@ options(scipen = 999)
 -   El promedio de edad en donde los nadadores consiguen el mejor rendimiento
 -   Proximamente...
 
-Importamos librerias y funciones:
+Importamos librerias
 
 ```{r pressure, echo=FALSE,warning=FALSE,error=FALSE,message=FALSE,cache=TRUE}
 library(tidyverse)
 library(dplyr)
-
-data_description <- function(data){
-  na <- sum(is.na(data))
-  description <- "---"
-  if(na == 0){
-    description <- "El dataframe no tiene valores na"
-  }else{
-    decription <- "El dataframe SI TIENE valores na"
-  }
-  
-  description <-cat(description , " , contiene " , nrow(data), " filas y ",ncol(data), " columnas",", con las siguientes variables: ",names(data)) 
-  
-  
-  return(description)
-}
-
 ```
 
 Leemos el dataset y analizamos sus caracteristicas
@@ -46,11 +30,28 @@ Leemos el dataset y analizamos sus caracteristicas
 ```{r dataset_analysis, echo=TRUE}
 data <- read.csv("../data/best_swimmers.csv",sep = ",")
 
-print(data_description(data))
+na <- sum(is.na(data))
+
+description <- ''
+
+if(na == 0){
+    description <- "El dataframe no tiene valores na"
+  }else{
+    decription <- "El dataframe SI TIENE valores na"
+  }
+  
+description <-cat(description , " , contiene " , nrow(data), " filas y ",ncol(data), " columnas",", con las siguientes variables: ",names(data))
+
+print(description)
+  
 ```
 
 Hacemos algunas transformaciones de datos
 
 ```{r transformation ,echo=FALSE}
-view(data)
+data <- data %>% 
+  mutate(
+    Team.Code = as.factor(Team.Code),
+    Team.Name = as.factor(Team.Name),
+  )
 ```
