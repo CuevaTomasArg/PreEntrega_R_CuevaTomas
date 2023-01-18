@@ -10,19 +10,25 @@ knitr::opts_chunk$set(echo = TRUE)
 options(scipen = 999)
 ```
 
-#Analisis exploratorio de los 200 mejores tiempos por carrera
+# Analisis exploratorio de los 200 mejores tiempos por carrera
 
-##Pre entrega Cueva Tomas En este Rmarkdown realizaremos el analisis de un dataset el cual contiene a los 200 mejores tiempos historicos de cada carrera, con nadadores dentro del ambito profesional. Del cual vamos a analizar:
+## Pre entrega Cueva Tomas
 
--   La cantidad de nadadores por equipo/país
--   El promedio de edad en donde los nadadores consiguen el mejor rendimiento
--   Proximamente...
+En este Rmarkdown realizaremos el analisis de un dataset el cual contiene a los 200 mejores tiempos historicos de cada carrera, con nadadores dentro del ambito profesional. Del cual vamos a analizar:
+
+-   **La cantidad de nadadores por equipo/país** para analizar donde es que se concentra la mejor escuela de nadadores a nivel profesional
+-   La edad promedio en donde los nadadores consiguen su rendimiento más alto
+-   La diferencia competitiva entre hombres y mujeres a nivel profesional
 
 Importamos librerias
 
 ```{r pressure, echo=FALSE,warning=FALSE,error=FALSE,message=FALSE,cache=TRUE}
+install.packages("tidyverse")
+install.packages("DT")
+
 library(tidyverse)
 library(dplyr)
+library(DT)
 ```
 
 Leemos el dataset y analizamos sus caracteristicas
@@ -41,17 +47,120 @@ if(na == 0){
   }
   
 description <-cat(description , " , contiene " , nrow(data), " filas y ",ncol(data), " columnas",", con las siguientes variables: ",names(data))
-
-print(description)
   
 ```
 
-Hacemos algunas transformaciones de datos
+Transformamos los datos para facilitar el uso de operaciones, en donde:
+
+-   Pasaremos las fechas de tipo caracter a tipo Date
+
+-   Nombre y codigo de los equipos a tipo factor
+
+-   Crearemos una nueva columna para vizualizar la edad del nadador en el momento que realizó aquel tiempo de nado que le permitió estar en este ranking
 
 ```{r transformation ,echo=FALSE}
+
 data <- data %>% 
   mutate(
+    Swim.date = as.Date(Swim.date,format = "%m-%d-%y"),
+    Athlete.birth.date = as.Date(Athlete.birth.date,format = "%m-%d-%y"),
     Team.Code = as.factor(Team.Code),
     Team.Name = as.factor(Team.Name),
+    Age.to.swim = trunc(as.numeric((`Swim.date`- `Athlete.birth.date`)/365))
   )
+```
+
+### Cantidad de nadadores por equipo
+
+```{r table, echo=TRUE,warning=FALSE,message=FALSE}
+
+data %>% 
+  select(Athlete.Full.Name,Team.Code,Team.Name) %>%
+  unique() %>% 
+  group_by(Team.Code,Team.Name) %>% 
+  transmute(
+    Team.Code = as.factor(Team.Code),
+    id.team.code = as.factor(Team.Code),
+    id.team.code = as.integer(id.team.code)
+  ) %>% 
+  summarise(
+    Amount.Swimmers = sum(id.team.code/id.team.code)
+  ) %>% 
+  arrange(desc(Amount.Swimmers)) %>% 
+  slice(1:10) %>% 
+  DT::datatable(
+    rownames = F,
+    filter = "top"
+  )
+```
+
+### Edad promedio de redimiento optimo, visualización
+
+```{r performance, echo=TRUE}
+
+plot_performance <- data %>% 
+  select(Athlete.Full.Name, Age.to.swim) %>%
+  unique() %>% 
+  group_by(Age.to.swim) %>% 
+  summarise(
+    Amount.Swimmers = sum(Age.to.swim/Age.to.swim)
+  ) %>% 
+  arrange(desc(Amount.Swimmers))
+
+plot_performance <- plot_performance %>% 
+  filter(Age.to.swim > 0)
+
+ggplot(
+  data =plot_performance,
+  mapping = aes(
+    x =Age.to.swim,
+    y = Amount.Swimmers)
+  ) +
+  geom_bar( stat = "identity")
+
+```
+
+### Competitividad, hombres vs mujeres
+
+```{r function_genders, echo=FALSE}
+gender_select <- function(data,gender){
+  dataframe <- data %>% 
+    filter(Gender == gender) %>% 
+    select(Athlete.Full.Name,Team.Code,Gender) %>%
+    unique() %>% 
+    group_by(Team.Code,Gender) %>% 
+    mutate(
+      Team.Code = as.factor(Team.Code),
+      id.team.code = as.factor(Team.Code),
+      id.team.code = as.integer(id.team.code)
+    ) %>% 
+    summarise(
+      Amount.Swimmers = sum(id.team.code/id.team.code),
+    ) %>% 
+    arrange(desc(Amount.Swimmers))
+  
+  return(dataframe)
+}
+```
+
+```{r competitiveness , echo=TRUE, message=FALSE,warning=FALSE}
+female_df <- gender_select(data,"F")
+
+male_df <- gender_select(data,"M")
+
+genders <- full_join(female_df,male_df)
+
+genders <-genders %>% 
+  arrange(desc(Amount.Swimmers))
+
+ggplot(genders,aes(x = `Team.Code`,
+                   y = `Amount.Swimmers`,
+                   fill = Gender)) +
+  geom_col(data = subset(genders,Gender == "M") %>% 
+             mutate(`Amount.Swimmers` = -`Amount.Swimmers`),
+           width = 0.9,fill = "blue")+
+  geom_col(data = subset(genders,Gender == "F"),width = 0.5,fill = "pink")+
+  coord_flip() +
+  scale_y_continuous(breaks = c(seq(-100,-10,by = 10),seq(0,100,by = 10)),labels = c(seq(-100,-10,by = 10)* -1,seq(0,100,by = 10)))
+
 ```
