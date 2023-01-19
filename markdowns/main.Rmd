@@ -58,9 +58,9 @@ Transformamos los datos para facilitar el uso de operaciones, en donde:
 
 -   Crearemos una nueva columna para vizualizar la edad del nadador en el momento que realizó aquel tiempo de nado que le permitió estar en este ranking
 
-```{r transformation ,echo=FALSE}
+```{r transformation ,echo=TRUE}
 
-data <- data %>% 
+data <- data %>%   
   mutate(
     Swim.date = as.Date(Swim.date,format = "%m-%d-%y"),
     Athlete.birth.date = as.Date(Athlete.birth.date,format = "%m-%d-%y"),
@@ -96,6 +96,8 @@ data %>%
 
 ### Edad promedio de redimiento optimo, visualización
 
+Este grafico busca visualizar las edades en donde los deportistas alcanzaron el mejor rendimiento y mostrarnos un promedio en donde, a nivel profesional, se encuentra el mejor performance en la natación.
+
 ```{r performance, echo=TRUE}
 
 plot_performance <- data %>% 
@@ -121,6 +123,8 @@ ggplot(
 ```
 
 ### Competitividad, hombres vs mujeres
+
+En el siguiente grafico se buscó visualizar la proporción de hombres y mujeres en cada equipo.
 
 ```{r function_genders, echo=FALSE}
 gender_select <- function(data,gender){
@@ -151,7 +155,7 @@ male_df <- gender_select(data,"M")
 genders <- full_join(female_df,male_df)
 
 genders <-genders %>% 
-  arrange(desc(Amount.Swimmers))
+  arrange(desc(Team.Code))
 
 ggplot(genders,aes(x = `Team.Code`,
                    y = `Amount.Swimmers`,
